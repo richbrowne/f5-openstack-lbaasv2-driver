@@ -37,7 +37,7 @@ deploy:
     skip_cleanup: true
     overwrite: true
     on:
-      repo: F5Networks/f5-openstack-lbaasv2-driver
+      repo: richbrowne/f5-openstack-lbaasv2-driver
       tags: true
   - provider: pypi
     user: $PYPI_USER
