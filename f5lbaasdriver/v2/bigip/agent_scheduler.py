@@ -73,6 +73,7 @@ class TenantScheduler(agent_scheduler.ChanceScheduler):
                         # return the first active agent in the
                         # group to process this task
                         lbaas_agent = {'agent': env_agents[0]}
+
             return lbaas_agent
 
     def get_active_agents_in_env(self, context, plugin, env, group=None):
@@ -107,7 +108,7 @@ class TenantScheduler(agent_scheduler.ChanceScheduler):
         with context.session.begin(subtransactions=True):
             candidates = []
             try:
-                candidates = plugin.db.get_lbaas_agents(context, active=True)
+                candidates = plugin.db.get_lbaas_agents(context)
             except Exception:
                 LOG.error("Caught Exception: get_lbaas_agents")
 

@@ -140,7 +140,8 @@ class LBaaSv2PluginCallbacksRPC(object):
                 for lb in agent_lbs:
                     loadbalancers.append(
                         {
-                            'agent_host': agent['host'],
+                            'agent_host': {'hostname': agent['host'],
+                                           'is_alive': agent['alive']},
                             'lb_id': lb.id,
                             'tenant_id': lb.tenant_id
                         }
@@ -155,7 +156,7 @@ class LBaaSv2PluginCallbacksRPC(object):
         plugin = self.driver.plugin
 
         with context.session.begin(subtransactions=True):
-            agents = self.driver.scheduler.get_active_agents_in_env(
+            agents = self.driver.scheduler.get_agents_in_env(
                 context,
                 self.driver.plugin,
                 env,
@@ -169,7 +170,8 @@ class LBaaSv2PluginCallbacksRPC(object):
                 for lb in agent_lbs:
                     loadbalancers.append(
                         {
-                            'agent_host': agent['host'],
+                            'agent_host': {'hostname': agent['host'],
+                                           'is_alive': agent['alive']},
                             'lb_id': lb.id,
                             'tenant_id': lb.tenant_id
                         }
@@ -200,7 +202,8 @@ class LBaaSv2PluginCallbacksRPC(object):
                     if lb.provisioning_status != plugin_constants.ACTIVE:
                         loadbalancers.append(
                             {
-                                'agent_host': agent['host'],
+                                'agent_host': {'hostname': agent['host'],
+                                               'is_alive': agent['alive']},
                                 'lb_id': lb.id,
                                 'tenant_id': lb.tenant_id
                             }
