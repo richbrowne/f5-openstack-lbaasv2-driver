@@ -141,7 +141,7 @@ class LBaaSv2PluginCallbacksRPC(object):
                     loadbalancers.append(
                         {
                             'agent_host': {'hostname': agent['host'],
-                                           'is_alive': agent['alive']},
+                                           'is_alive': agent['admin_state_up']},
                             'lb_id': lb.id,
                             'tenant_id': lb.tenant_id
                         }
@@ -171,7 +171,7 @@ class LBaaSv2PluginCallbacksRPC(object):
                     loadbalancers.append(
                         {
                             'agent_host': {'hostname': agent['host'],
-                                           'is_alive': agent['alive']},
+                                           'is_alive': agent['admin_state_up']},
                             'lb_id': lb.id,
                             'tenant_id': lb.tenant_id
                         }
@@ -203,7 +203,7 @@ class LBaaSv2PluginCallbacksRPC(object):
                         loadbalancers.append(
                             {
                                 'agent_host': {'hostname': agent['host'],
-                                               'is_alive': agent['alive']},
+                                               'is_alive': agent['admin_state_up']},
                                 'lb_id': lb.id,
                                 'tenant_id': lb.tenant_id
                             }
