@@ -23,6 +23,7 @@ from oslo_log import log as logging
 from f5lbaasdriver.v2.bigip import constants_v2
 from f5lbaasdriver.v2.bigip.disconnected_service import DisconnectedService
 from f5lbaasdriver.v2.bigip import exceptions as f5_exc
+from f5lbaasdriver.v2.bigip import neutron_client as q_client
 
 LOG = logging.getLogger(__name__)
 
@@ -49,6 +50,7 @@ class LBaaSv2ServiceBuilder(object):
         self.last_cache_update = datetime.datetime.fromtimestamp(0)
         self.plugin = self.driver.plugin
         self.disconnected_service = DisconnectedService()
+        self.q_client = q_client.F5NetworksNeutronClient(self.plugin)
 
     def build(self, context, loadbalancer, agent):
         """Get full service definition from loadbalancer ID."""
@@ -171,15 +173,22 @@ class LBaaSv2ServiceBuilder(object):
         # There should be only one.
         if len(ports) == 1:
             member_dict['port'] = ports[0]
-            self._populate_member_network(context, member_dict, network)
         else:
             # FIXME(RJB: raise an exception here and let the driver handle
             # the port that is not on the network.
             LOG.error("Unexpected number of ports returned for member: ")
             if not ports:
+                # Create a port, what bindings should we use.
                 LOG.error("No port found")
+                member_dict['port'] = \
+                    self.q_client.create_port_for_member(
+                        context, member.address,
+                        subnet_id=subnet_id)
             else:
                 LOG.error("Multiple ports found: %s" % ports)
+                raise
+
+        self._populate_member_network(context, member_dict, network)
 
         return (member_dict, subnet, network)
 
@@ -488,7 +497,6 @@ class LBaaSv2ServiceBuilder(object):
         Provides an alternative to_api_dict() in order to get additional
         object IDs without exploding object references.
         """
-
         pool_dict = pool.to_dict(healthmonitor=False,
                                  listener=False,
                                  listeners=False,
