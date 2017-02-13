@@ -409,8 +409,22 @@ class MemberManager(EntityManager):
         """Delete a member."""
 
         self.loadbalancer = member.pool.loadbalancer
-        self.api_dict = member.to_dict(pool=False)
-        self._call_rpc(context, member, 'delete_member')
+        member_port = None
+        try:
+            agent_host, service = self._schedule_agent_create_service(context)
+
+            # Get port for member.
+            for m in service['members']:
+                if member['id'] == m['id']:
+                    member_port = m['port']
+                    break
+
+            if member_port:
+                if member_port['device_owner'] == 'network:f5lbaasv2':
+                    LOG.error("NEED TO DELETE THIS PORT")
+
+            driver.agent_rpc.delete_member(
+                context, member.to_dict(pool=False), service, agent_host)
 
 
 class HealthMonitorManager(EntityManager):

@@ -174,12 +174,9 @@ class LBaaSv2ServiceBuilder(object):
         if len(ports) == 1:
             member_dict['port'] = ports[0]
         else:
-            # FIXME(RJB: raise an exception here and let the driver handle
-            # the port that is not on the network.
-            LOG.error("Unexpected number of ports returned for member: ")
             if not ports:
                 # Create a port, what bindings should we use.
-                LOG.error("No port found")
+                LOG.debug("Create port for member")
                 member_dict['port'] = \
                     self.q_client.create_port_for_member(
                         context, member.address,

@@ -51,6 +51,21 @@ class F5NetworksNeutronClient(object):
                 context, subnet_id, ip_address=ip_address)
         return member_port
 
+    def create_port_for_member(self,
+                               context,
+                               ip_address,
+                               mac_address=None,
+                               network_id=None, subnet_id=None):
+        member_port = None
+
+        if not mac_address:
+            mac_address = attributes.ATTR_NOT_SPECIFIED
+
+        with context.session.begin(subtransactions=True):
+            member_port = self.create_port_on_subnet_with_specific_ip(
+                context, subnet_id, ip_address=ip_address)
+        return member_port
+
     @log_helpers.log_method_call
     def create_port_on_subnet(self, context, subnet_id=None,
                               mac_address=None,
@@ -152,3 +167,67 @@ class F5NetworksNeutronClient(object):
             context.session.flush()
 
             return port
+
+    @log_helpers.log_method_call
+    def get_port_by_name(self, context, port_name=None):
+        """Get port by name."""
+        if port_name:
+            filters = {'name': [port_name]}
+            return self.driver.plugin.db._core_plugin.get_ports(
+                context,
+                filters=filters
+            )
+
+    @log_helpers.log_method_call
+    def delete_port(self, context, port_id=None, mac_address=None):
+        """Delete port."""
+        if port_id:
+            self.driver.plugin.db._core_plugin.delete_port(context, port_id)
+        elif mac_address:
+            filters = {'mac_address': [mac_address]}
+            ports = self.driver.plugin.db._core_plugin.get_ports(
+                context,
+                filters=filters
+            )
+            for port in ports:
+                self.driver.plugin.db._core_plugin.delete_port(
+                    context,
+                    port['id']
+                )
+
+    @log_helpers.log_method_call
+    def delete_port_by_name(self, context, port_name=None):
+        """Delete port by name."""
+        with context.session.begin(subtransactions=True):
+            if port_name:
+                filters = {'name': [port_name]}
+                try:
+                    ports = self.driver.plugin.db._core_plugin.get_ports(
+                        context,
+                        filters=filters
+                    )
+                    for port in ports:
+                        self.driver.plugin.db._core_plugin.delete_port(
+                            context,
+                            port['id']
+                        )
+                except Exception as e:
+                    LOG.error("failed to delete port: %s", e.message)
+
+    @log_helpers.log_method_call
+    def get_ports_for_fixedip(self, context, subnet_id=None,
+                              ip_address=None):
+        """Get ports for network."""
+        ports = []
+        with context.session.begin(subtransactions=True):
+            try:
+                filters = \
+                    {'fixed_ips': {'subnet_id': subnet_id,'ip_address'=ip_address}}
+                ports = self.driver.plugin.db._core_plugin.get_ports(
+                    context,
+                    filters=filters
+                )
+            except Exception as e:
+                LOG.error("Exception: get_ports_for_fixedip: %s", e.message)
+
+        return ports
