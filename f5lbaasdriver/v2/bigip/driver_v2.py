@@ -20,6 +20,7 @@ import uuid
 from oslo_config import cfg
 from oslo_log import helpers as log_helpers
 from oslo_log import log as logging
+from oslo_service import service
 from oslo_utils import importutils
 
 from neutron.extensions import portbindings
@@ -31,6 +32,7 @@ from neutron_lbaas.extensions import lbaas_agentschedulerv2
 
 from f5lbaasdriver.v2.bigip import agent_rpc
 from f5lbaasdriver.v2.bigip import exceptions as f5_exc
+from f5lbaasdriver.v2.bigip import message_consumers
 from f5lbaasdriver.v2.bigip import neutron_client
 from f5lbaasdriver.v2.bigip import plugin_rpc
 
@@ -98,6 +100,15 @@ class F5DriverV2(object):
 
         self.q_client = \
             neutron_client.F5NetworksNeutronClient(self.plugin)
+        self.consumer = message_consumers.F5RPCConsumer(self)
+
+        # Set up Consumer Service:
+        # Set workers to 2; otherwise we won't spin up a new PID
+        rpc_workers = getattr(cfg, 'rpc_workers', 1)
+        workers = 2 if rpc_workers > 1 else 1
+
+        LOG.debug("Driver is launching consumer")
+        service.launch(cfg.CONF, self.consumer, workers=workers)
 
         # add this agent RPC to the neutron agent scheduler
         # mixins agent_notifiers dictionary for it's env
