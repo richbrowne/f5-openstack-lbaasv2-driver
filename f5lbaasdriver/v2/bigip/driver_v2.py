@@ -116,6 +116,7 @@ class F5DriverV2(object):
                   "pid(%d) print trigger(%s)" % (os.getpid(), trigger))
         self.plugin_rpc.create_rpc_listener()
 
+
 class EntityManager(object):
     '''Parent for all managers defined in this module.'''
 
