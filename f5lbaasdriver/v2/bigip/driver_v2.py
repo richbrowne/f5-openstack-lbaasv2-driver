@@ -104,10 +104,12 @@ class F5DriverV2(object):
 
         # Set up Consumer Service:
         # Set workers to 2; otherwise we won't spin up a new PID
-        rpc_workers = getattr(cfg, 'rpc_workers', 1)
+        rpc_workers = getattr(cfg.CONF, 'rpc_workers', 1)
         workers = 2 if rpc_workers > 1 else 1
 
-        LOG.debug("Driver is launching consumer")
+        LOG.info("F5DriverV2 is launching {} consumers".format(
+            rpc_workers
+        ))
         service.launch(cfg.CONF, self.consumer, workers=workers)
 
         # add this agent RPC to the neutron agent scheduler
