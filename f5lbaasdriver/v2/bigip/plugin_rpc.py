@@ -112,8 +112,8 @@ class LBaaSv2PluginCallbacksRPC(object):
                     self.cluster_wide_agents[(env, group)] = agents[0]
                     return agents[0]
                 else:
-                    LOG.error('no active agents available for clusterwide ',
-                              ' tasks %s group number %s' % (env, group))
+                    LOG.error('no active agents available for clusterwide '
+                              ' tasks %s group number %s' % (str(env), str(group)))
                     return {}
             except Exception as exc:
                 LOG.error('clusterwide agent exception: %s' % str(exc))
